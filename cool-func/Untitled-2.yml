@@ -1,0 +1,47 @@
+services:
+  odoo:
+    image: odoo:17.0-20240924
+    container_name: odoo
+    depends_on:
+      - mydb
+    ports:
+      - "8069:8069"
+    environment:
+    - HOST=${HOSTNAME}
+    - USER=${DB_USER}
+    - PASSWORD=${DATABASE_PASSWORD}
+    networks:
+      - proxy
+      - mydb
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.odoo-pro.entrypoints=websecure"
+      - "traefik.http.routers.odoo-pro.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.services.odoo-pro.loadbalancer.server.port=8069"
+      - "traefik.http.routers.odoo-pro.tls=true"
+      - "traefik.http.routers.odoo-pro.tls.certresolver=lets-encrypt"
+
+
+  mydb:
+    image: postgres:15
+    container_name: mydb
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+    networks:
+      - proxy
+      - mydb
+
+networks:
+  mydb:
+    external: false
+  proxy:
+    external: true
+
+
+DB_USER=odoo
+DATABASE_PASSWORD=eof4/hlCEN4JkL1BU9pC6A==
+DOMAIN=odoo.g2-holding.co
+HOSTNAME=mydb
